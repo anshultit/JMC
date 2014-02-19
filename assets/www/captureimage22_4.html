@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Jabalpur Municipal Corporation</title>
+	
+    <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0;" />    
+
+    <link rel="stylesheet" type="text/css" href="appframework/af.ui.css" />
+
+    <link rel="stylesheet" type="text/css" href="appframework/icons.css" />
+   
+ 	<script type="text/javascript" charset="utf-8" src="appframework/appframework.ui.min.js"></script>
+	
+    <script src="jquery.xdomainajax.js"></script>
+    
+    <script type="text/javascript" charset="utf-8" src="cordova-1.9.0.js"></script>
+        
+    <script type="text/javascript" charset="utf-8">
+      
+    var deviceReady = false;
+    var imagedata1 =null;
+    var nmae ='';
+    /**
+     * Take picture with camera
+     */
+      function RedirectD()
+	 
+	 {window.location ='http://182.18.133.191:2092/login.aspx';}
+     function Redirect()
+	 
+	 {window.location.href ='index.html';}
+     
+    function takePicture() {
+        navigator.camera.getPicture(
+            function(uri) {
+                var img = document.getElementById('camera_image');
+                img.style.visibility = "visible";
+                img.style.display = "block";
+                img.src = uri;
+                imagedata1='data:image/jpeg;base64,'+uri;
+               // document.getElementById('p').click();
+                document.getElementById('page2').style.display='none';
+                document.getElementById('page2').style.display='block';
+               // $('#page1').removeAttr( 'selected');
+                 // $('#page2').attr( 'selected','true');
+                //alert(document.getElementById('page1').className)
+                //document.getElementById('page1').selected =false;
+                //document.getElementById('page2').selected =true;
+                document.getElementById('camera_status').innerHTML = "Success";
+            },
+            function(e) {
+                console.log("Error getting picture: " + e);
+                document.getElementById('camera_status').innerHTML = "Error getting picture.";
+            },
+            { quality: 32,destinationType: Camera.DestinationType.FILE_URI, targetWidth : 250, targetHeight : 250
+  });
+    };
+
+    
+    /**
+     * Upload current picture
+     */
+    function uploadPicture() {
+    	  viewUploadedPictures();
+    	// Get URI of picture to upload
+        var img = document.getElementById('camera_image');
+        var imageURI = img.src;
+        if (!imageURI || (img.style.display == "none")) {
+            document.getElementById('camera_status').innerHTML = "Take picture or select picture from library first.";
+            return;
+        }
+        
+        // Verify server has been entered
+        server = document.getElementById('serverUrl').value;
+       
+        if (server) {
+        
+        	var d = new Date();
+        	//alert(d.format("yyyy-MM-dd h:mm:ss"));
+            // Specify transfer options
+            var options = new FileUploadOptions();
+            options.fileKey="file";
+           // alert(window.MyCls1.getLine1Number());
+            
+            options.fileName= nmae +'.jpeg';
+           // nmae=options.fileName;
+           //options.fileName = "image2.jpeg";
+			options.mimeType = "image/jpeg";
+            options.chunkedMode = false;
+               
+            // Transfer picture to server
+            var ft = new FileTransfer();
+            
+          // alert(imageURI); 
+          
+          
+           
+            ft.upload(imageURI,server, function(r) {
+              
+             //  alert(JSON.stringify(r));
+             //  document.getElementById('page2').click();
+               document.getElementById('msg').style.display='block';
+               document.getElementById('camera_status').innerHTML = "Your request send successfully to JMC :  from mobile no "+window.MyCls1.getLine1Number();            	
+            }, function(error) {
+                document.getElementById('camera_status').innerHTML = "Upload failed: Code = "+error.code;            	
+            }, options);
+        }
+    }
+
+    /**
+     * View pictures uploaded to the server
+     */
+    //viewUploadedPictures()
+    function viewUploadedPictures() {
+     
+        var d = new Date();
+       var letlng =window.MyCls.getLatitude()+','+window.MyCls.getLongitude();
+       //alert(letlng);
+        var mobileno=window.MyCls1.getLine1Number();
+         nmae=  d.toString().replace(/ /g,'').split('GMT')[0].replace(':','').replace(':','');
+         var imagename =nmae + '.jpeg';
+        var str = 'loglet=' + letlng;
+        str = str + '&mobile=' + mobileno;
+        str = str + '&imagename=' + imagename;
+        str = str + '&requesttype=' + 'SA';
+       // str = str + '&compinttext=' + imagedata1.toString().substring(0,25000);
+       // str = str + '&compinttext1=' + imagedata1.toString().substring(1,500);
+      
+       // alert(imagedata1.toString().length);
+       // var res = str.substring(1,4);
+        
+        //alert(imagedata1);
+        str=  str+'&compinttext='+document.getElementById('remark').value; 
+         str=  str+'&deviceId='+window.MyCls1.getDeviceId(); 
+        //alert(str);
+    	// Get server URL
+      // server = "http://kvkdatia.com/Default1.aspx?loglet='+letlng+'&mobile='+mobileno+'&imagename='+imagename+'&requesttype=WS";
+       server= "http://182.18.133.191:2092/Default.aspx?"+str;
+        if (server) {
+           // var params = 'lorem=ipsum&name=binny';
+            // Get HTML that lists all pictures on server using XHR	
+            var xmlhttp = new XMLHttpRequest();
+              
+            // Callback function when XMLHttpRequest is ready
+            xmlhttp.onreadystatechange=function(){
+                
+                if(xmlhttp.readyState === 4){
+                // alert(xmlhttp);
+                    // alert(xmlhttp.responseText);
+                    // HTML is returned, which has pictures to display
+                    //alert(xmlhttp.status);
+                    if (xmlhttp.status === 200) {
+                      if(xmlhttp.responseText!="fail")
+                         {
+                            MyCls.sendSms("JMC_COMPLAINT-"+xmlhttp.responseText);
+                         }
+                    }
+
+                    // If error
+                    else {
+                    	//document.getElementById('server_images').innerHTML = "Error retrieving pictures from server.";
+                    }
+                }
+            };
+            xmlhttp.open("GET", server , true);
+            xmlhttp.send();       	
+        }	
+    }
+    
+    /**
+     * Function called when page has finished loading.
+     */
+    function init() {
+        document.addEventListener("deviceready", function() {deviceReady = true;}, false);
+        window.setTimeout(function() {
+            if (!deviceReady) {
+                alert("Error: PhoneGap did not initialize.  Demo will not run correctly.");
+            }
+        },2000);
+    }
+    Date.prototype.format = function(format) //author: meizz
+{
+  var o = {
+    "M+" : this.getMonth()+1, //month
+    "d+" : this.getDate(),    //day
+    "h+" : this.getHours(),   //hour
+    "m+" : this.getMinutes(), //minute
+    "s+" : this.getSeconds(), //second
+    "q+" : Math.floor((this.getMonth()+3)/3),  //quarter
+    "S" : this.getMilliseconds() //millisecond
+  }
+
+  if(/(y+)/.test(format)) format=format.replace(RegExp.$1,
+    (this.getFullYear()+"").substr(4 - RegExp.$1.length));
+  for(var k in o)if(new RegExp("("+ k +")").test(format))
+    format = format.replace(RegExp.$1,
+      RegExp.$1.length==1 ? o[k] :
+        ("00"+ o[k]).substr((""+ o[k]).length));
+  return format;
+}
+    </script>
+
+</head>
+
+<body>
+
+<div id="afui">
+    
+    <!--Left Side Menu Navigation bar -->
+    <nav>
+        <ul class="list">
+            <li><a href="#" onclick="Redirect();" class="icon home">Home</a></li>
+			<li><a href="#page1" class="icon picture">Capture Image</a></li>
+            <li><a href="#page2" id="p" class="icon upload">Upload Photo</a></li>
+            <li><a href="#page3" class="icon chat">Messages</a></li>
+            <li><a href="#page4" class="icon user">Login</a></li>
+            <li><a href="#"  onclick="RedirectD()" class="icon user">Dashboard</a></li>
+        </ul>
+    </nav>
+    
+    <div id="content" style=""> 
+        
+    <!--Main View Pages-->
+        
+        <div class="panel" title="Home" id="page1" data-footer="none" selected="true">
+            <header>
+                <a id="menubadge" onclick='$.ui.toggleSideMenu()' class='menuButton' style="float:left !important; padding-left:22px; padding-top:8px;">menu</a>
+                <h1>Capture Image</h1>
+            </header>
+            <p class="PT30"><img src="images/caputure-icon.jpg" /></p>
+			
+			<p class="PT10">
+			<a onclick="takePicture();"><img src="images/photokhiche-btn.jpg" alt="" /></a>
+			</p>
+			
+			<p class="PT10">
+			<img src="images/photo-txt.jpg" />
+			
+			</p>
+			<p>Click here to capture Photo</p>
+        </div>
+        
+        <div class="panel" title="Upload Photo" id="page2" data-footer="none" selected="">
+            <header>
+                <a id="menubadge" onclick='$.ui.toggleSideMenu()' class='menuButton' style="float:left !important; padding-left:22px; padding-top:8px;">menu</a>
+                <h1>Upload Photo</h1>
+            </header>
+           
+            
+             <span><img id="msg" style ="display:none;" src="images/sucsses-txt.jpg" /></span>
+             <span id="camera_status"></span>
+            <img style="visibility:hidden;display:none;" id="camera_image" src="" class="uploadimg" />
+            </p>
+			<p>Photo Remark</p>
+			<p><textarea rows="2" id='remark' name="remark" ></textarea></p>
+			<p>
+			<input type="button" class="button" onclick="uploadPicture();" value="Upload Picture" data-theme="b" /></br>
+			<img src="images/photobheje-btn.jpg" />
+			</p>
+        </div>
+        
+        <div class="panel" title="Messages" id="page3" data-footer="none">
+            <header>
+                <a id="menubadge" onclick='$.ui.toggleSideMenu()' class='menuButton' style="float:left !important; padding-left:22px; padding-top:8px;">menu</a>
+                <h1>Messages</h1>
+            </header>
+            <p>This is view for third menu item</p>
+        </div>
+        
+        <div class="panel" title="Profile" id="page4" data-footer="none">
+            <header>
+                <a id="menubadge" onclick='$.ui.toggleSideMenu()' class='menuButton' style="float:left !important; padding-left:22px; padding-top:8px;">menu</a>
+                <h1>Login</h1>
+            </header>
+            
+            <p class="PT30">
+            	User Name :<br>
+            	<input type="text" name="name" id="name" value=""  />
+            </p>
+            <p>
+            	Password : <br>
+            	<input type="password" name="password" />
+            </p>
+            <p><input type="button" name="submit" value="login" class="button" /></p>
+        </div>
+        
+        <div class="panel" title="Dashboard" id="page5" data-footer="none">
+            <header>
+                <a id="menubadge" onclick='$.ui.toggleSideMenu()' class='menuButton' style="float:left !important; padding-left:22px; padding-top:8px;">menu</a>
+                <h1>Dashboard</h1>
+            </header>
+           <div class="PT30">
+           <table cellpadding="5" cellspacing="0" width="100%" class="tab">
+					<tr>
+						<th>S No.</th>
+						<th>Complain Id</th>
+						<th>Complain Type</th>
+						<th>Date</th>
+						<th>Remark</th>
+						<th>Status</th>
+					</tr>
+					<tr>
+						<td>1</td>
+						<td>WS001</td>
+						<td>WS</td>
+						<td></td>
+						<td>testing</td>						
+						<td>Done</td>
+					</tr>
+					<tr>
+						<td>2</td>
+						<td>WS001</td>
+						<td>WS</td>
+						<td></td>
+						<td>testing</td>
+						<td>Done</td>
+					</tr>
+					<tr>
+						<td>3</td>
+						<td>WS001</td>
+						<td>WS</td>
+						<td></td>
+						<td>testing</td>
+						<td>Done</td>
+					</tr>
+					<tr>
+						<td>4</td>
+						<td>WS001</td>
+						<td>WS</td>
+						<td></td>
+						<td>testing</td>
+						<td>Done</td>
+					</tr>
+					<tr>
+						<td>5</td>
+						<td>WS001</td>
+						<td>WS</td>
+						<td></td>
+						<td>testing</td>
+						<td>Done</td>
+					</tr>
+				</table>
+           </div>
+           
+        </div>
+        
+        </div>
+         <input id="serverUrl" type="hidden" value="http://nhaimobi.org/jmcupload.php" />
+    </div>
+</div>
+
+</body>
+
+</html>

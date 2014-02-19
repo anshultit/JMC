@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html class="ui-mobile">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>NHAI</title>
+    
+        
+	<link rel="stylesheet"  href="../css/themes/default/jquery.mobile-1.1.0.css" />
+	<link rel="stylesheet" href="../docs/_assets/css/jqm-docs.css" />
+    <link type="text/css" href="../css/themes/default/jquery.mobile.simpledialog.min.css" rel="stylesheet" /> 
+    
+	<script src="../js/jquery.js"></script>
+	<script src="../docs/_assets/js/jqm-docs.js"></script>
+	<script src="../js/jquery.mobile-1.1.0.js"></script>
+	<script type="text/javascript" src="../js/jquery.mousewheel.min.js"></script>
+	<script type="text/javascript" src="../js/jquery.mobile.simpledialog.min.js"></script>
+	<script src="../jquery.xdomainajax.js"></script>
+	<script type="text/javascript" src="../js/prettify.js"></script>
+	<link type="text/css" href="../css/themes/default/prettify.css" rel="stylesheet" />
+    
+        <script type="text/javascript" charset="utf-8" src="../cordova-1.7.0.js"></script>
+        <script type="text/javascript">
+          
+            //document.addEventListener("deviceready", onDeviceReady, false);
+            
+            function ShowReport()
+            {
+				
+				$.ajax({
+					url: 'http://nhaimobi.org/LHOI.asmx/GettNHAIContractsUIDetails?month=2&yr=2012',
+					type: 'GET',
+					success: function(res) {
+						var response = res.responseText;
+						var JSONresponse = res.responseText.replace("<html>","").replace("<head>","").replace('<meta content="HTML Tidy for Java (vers. 26 Sep 2004), see www.w3.org" name="generator"/>',"").replace("<title/>","").replace("</head>","").replace("<body>","").replace("</body>","").replace("</html>","").replace('<p>','{"bindings": [').replace("</p>","]}").replaceAll('},{','},\n{');
+						
+						
+						var myJSONObject = JSON.parse(trim1(JSONresponse));
+						recordCount = myJSONObject.bindings.length;
+						for (i=0; i<recordCount; i++) {
+							//alert(myJSONObject.bindings[i].MainProject);
+							$("#reportTable").last().append('<tr height="35px"><td width="30%">'+myJSONObject.bindings[i].vcdContractPackageState+'</td><td width="10%">'+myJSONObject.bindings[i].no_of_project+'</td></tr>');
+						}
+					}
+				});
+            }
+			
+			String.prototype.replaceAll = function(str1, str2, ignore) 
+			{
+				return this.replace(new RegExp(str1.replace(/([\/\,\!\\\^\$\{\}\[\]\(\)\.\*\+\?\|\<\>\-\&])/g,"\\$&"),(ignore?"gi":"g")),(typeof(str2)=="string")?str2.replace(/\$/g,"$$$$"):str2);
+			}
+
+			function trim1 (str) {
+				return str.replace(/^\s\s*/, '').replace(/\s\s*$/, '');
+			}
+			
+            </script>
+
+</head>
+<!--onload="onBodyLoad();"-->
+    <body class="ui-mobile-viewport ui-overlay-a" onLoad="ShowReport();">
+
+    <div data-role="page" data-theme="a">
+	<div data-role="page" class="ui-page ui-body-e ui-page-active" tabindex="0">
+
+	<div data-role="header" data-theme="a" class="ui-header ui-bar-a" role="banner">
+		<h1 class="ui-title" role="heading" aria-level="1">NHAI Application</h1>
+        
+		<a href="ReportNavigationHO.html" data-theme="e" data-role="button" data-transition="slide" data-ajax="false">Back</a>
+             <a href="../index.html" data-role="button" data-theme="e" data-transition="slide"  >Logout</a>
+        
+	</div><!-- /header -->
+
+	<div data-role="content" class="ui-content" role="main">
+		<div class="content">
+        	 <ul data-role="listview" data-inset="true" data-theme="c" data-dividertheme="a">
+             <li data-role="list-divider" >Time Over Run Project</li>
+             <li>     
+                        
+                  <table border="1" cellspacing="0" cellpadding="1" style="width:100%" id="reportTable">
+                      <tr height="45px" class="ui-bar-b ui-corner-top">
+                          <td width="70%">State Name</td>
+                          <td width="30%">Total Project Delay</td>
+                          
+                      </tr>
+                      
+                  </table>
+		    </li>
+       </ul>
+	</div></div>
+        
+<div data-role="footer" class="footer-docs ui-footer ui-bar-a" data-theme="a" role="contentinfo">
+<p style="text-align:right">© 2011-12 NHAI Application</p>
+</div>
+</div>
+</div>
+
+
+</body>
+</html>
